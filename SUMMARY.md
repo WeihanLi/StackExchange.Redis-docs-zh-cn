@@ -3,7 +3,7 @@
 * [基础](Basics.md)
 * [配置](Configuration.md)
 * [事件](Events.md)
-* [异步执行](ExecSync.md)
+* [同步执行](ExecSync.md)
 * [键查找](KeysScan.md)
 * [键与值](KeysValues.md)
 * [管道与重用链接](PipelinesMultiplexers.md)
