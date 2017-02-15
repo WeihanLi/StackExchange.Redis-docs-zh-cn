@@ -1,20 +1,17 @@
-﻿Pub/Sub Message Order
+﻿发布/订阅 消息顺序
 ===
 
-When using the pub/sub API, there is a decision to be made as to whether messages from the same connection should be processed *sequentially* vs *concurrently*.
+当使用 发布/订阅 API 时，需要决定使用同一连接的消息应该是*顺序处理*  还是*并行处理* 。
 
-Processing them sequentially means that you don't need to worry (quite as much) about thread-safety, and means that you preserve the order of events -
-they will be processed in exactly the same order in which they are received (via a queue) - but as a consequence it means that messages can delay each-other.
+顺序处理意味着你（很大程度上）不需要担心线程安全问题，并且这意味着你保持了事件的顺序。它们会完全按照（通过队列）接受的顺序来处理，但是结果这也意味着消息会延迟彼此。
 
-The other option is *concurrent* processing. This makes **no specific guarantees** about the order in which work gets processed, and your code is entirely
-responsible for ensuring that concurrent messages don't corrupt your internal state - but it can be significantly faster and much more scalable.
-This works *particularly* well if messages are generally unrelated.
+另一种选择是 *concurrent（并行）*  处理。这使得工作的处理顺序 **没有特定的保证** 并且你的代码完全负责确保并发的消息不应该破坏内部的状态——但这样可以显著的更快，更加可以扩展。
+如果消息间一般都不相关，这种处理方式*特别*好。
 
-For safety, **the default is sequential**; however, it is strongly recommended that you use concurrent processing whenever possible. This is a simple change:
+出于安全考虑， **默认处理方式是顺序处理**。但是，强烈建议你尽可能的使用并行处理。这是一个简单的修改：
 
 ```C#
 multiplexer.PreserveAsyncOrder = false;
 ```
 
-The reason that this is not a *configuration* option is that whether it is appropriate to do this depends *entirely* on the code that is subscribing to
-messages.
+这不是一个*配置* 选项，因为这样做是否合适 *完全* 取决于订阅消息的代码。
