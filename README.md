@@ -16,6 +16,10 @@ Redis官网 <https://redis.io/>
 ## StackExchange.Redis 简介
 StackExchange.Redis 是 Stackoverflow 开发的 Redis C# 客户端，是目前.net应用使用的最多的 redis 客户端，性能优越。
 
+# StackExchange.Redis 中文使用文档
+* Github：<https://github.com/WeihanLi/StackExchange.Redis-docs-cn>
+* Gitbook : <https://weihanli.gitbooks.io/stackexchange-redis-docs-cn/content/>
+
 ## More
 作者水平有限，若有疏漏或错误还望提醒，十分感谢。
 
