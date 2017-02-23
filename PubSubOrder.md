@@ -15,3 +15,6 @@ multiplexer.PreserveAsyncOrder = false;
 ```
 
 这不是一个*配置* 选项，因为这样做是否合适 *完全* 取决于订阅消息的代码。
+
+[查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/Docs/PubSubOrder.md)
+---

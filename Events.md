@@ -12,3 +12,6 @@
 - `InternalError` - 当库在一些意想不到的方式失败时触发; 这主要是为了调试目的，并且大多数用户应该不需要这个事件
 
 需要注意，StackExchange.Redis 中的 发布/订阅 工作方式与事件*非常相似*，接收到消息时会调用接受一个 `Action<RedisChannel, RedisValue>` 类型回调方法的 `Subscribe` / `SubscribeAsync` 方法。
+
+[查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/Docs/Events.md)
+---
