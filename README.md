@@ -16,11 +16,28 @@ Redis官网 <https://redis.io/>
 ## StackExchange.Redis 简介
 StackExchange.Redis 是 Stackoverflow 开发的 Redis C# 客户端，是目前.net应用使用的最多的 redis 客户端，性能优越。
 
-# StackExchange.Redis 中文使用文档
+## StackExchange.Redis 中文使用文档
 * Github：<https://github.com/WeihanLi/StackExchange.Redis-docs-cn>
-* Gitbook : <https://weihanli.gitbooks.io/stackexchange-redis-docs-cn/content/>
+* Gitbook : <https://www.gitbook.com/book/weihanli/stackexchange-redis-docs-cn/details>   
+* [点击阅读](https://weihanli.gitbooks.io/stackexchange-redis-docs-cn/)  [下载 PDF](https://www.gitbook.com/download/pdf/book/weihanli/stackexchange-redis-docs-cn)
+
+## 翻译进度
+- [x] [基础](Basics.md)
+- [x] [配置](Configuration.md)
+- [x] [事件](Events.md)
+- [x] [同步执行](ExecSync.md)
+- [ ] [键查找](KeysScan.md)
+- [ ] [键与值](KeysValues.md)
+- [ ] [管道与重用链接](PipelinesMultiplexers.md)
+- [ ] [分析](Profiling.md)
+- [x] [发布订阅顺序](PubSubOrder.md)
+- [] [脚本](Scripting.md)
+- [] [超时](Timeouts.md)
+- [] [事务](Transactions.md)
 
 ## More
 作者水平有限，若有疏漏或错误还望提醒，十分感谢。
+
+您可以 [提出问题](https://github.com/WeihanLi/StackExchange.Redis-docs-cn/issues/new) 或者给我[发邮件](mailto:ben121011@126.com)。
 
 ### Contact me:<ben121011@126.com>
