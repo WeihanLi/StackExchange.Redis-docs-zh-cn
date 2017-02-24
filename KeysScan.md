@@ -1,15 +1,17 @@
-﻿Where are `KEYS`, `SCAN`, `FLUSHDB` etc?
+﻿`KEYS`, `SCAN`, `FLUSHDB` 这些在哪里？
 ===
 
-Some very common recurring questions are:
+这里是一些非常常见的常见问题：
 
-> There doesn't seem to be a `Keys(...)` or `Scan(...)` method? How can I query which keys exist in the database?
+> 似乎没有一个 `Keys(...)` 或者 `Scan(...)` 方法？ 如何查询数据库中存在哪些键？
 
-or
+或者
 
-> There doesn't seem to be a `Flush(...)` method? How can I remove all the keys in the database?
+> 似乎没有一个 `Flush(...)` 方法？如何删除数据库中的所有的键？
 
-The key word here, oddly enough, is the last one: database. Because StackExchange.Redis aims to target scenarios such as cluster, it is important to know which commands target the *database* (the logical database that could be distributed over multiple nodes), and which commands target the *server*. The following commands all target a single server:
+很奇怪的是，这里的最后一个关键词是数据库。
+因为StackExchange.Redis的目标是针对集群等场景，知道哪些命令针对 *数据库* （可以是分布在多个节点上的逻辑数据库）以及哪些命令针对 *服务器* 是很重要的。
+以下命令都针对单个服务器：
 
 - `KEYS` / `SCAN`
 - `FLUSHDB` / `FLUSHALL`
@@ -19,24 +21,24 @@ The key word here, oddly enough, is the last one: database. Because StackExchang
 - `CONFIG` / `INFO` / `TIME`
 - `SLAVEOF`
 - `SAVE` / `BGSAVE` / `LASTSAVE`
-- `SCRIPT` (not to be confused with `EVAL` / `EVALSHA`)
+- `SCRIPT` (不要混淆 `EVAL` / `EVALSHA`)
 - `SHUTDOWN`
 - `SLOWLOG`
-- `PUBSUB` (not to be confused with `PUBLISH` / `SUBSCRIBE` / etc)
-- some `DEBUG` operations
+- `PUBSUB` (不要混淆 `PUBLISH` / `SUBSCRIBE` / 等)
+- 一些 `DEBUG` 操作
 
-(I've probably missed at least one) Most of these will seem pretty obvious, but the first 3 rows are not so obvious:
+（我可能错过了至少一个）大多数这些将显得很明显，但前3行不那么明显：
 
-- `KEYS` / `SCAN` only list keys that are on the current server; not the wider logical database
-- `FLUSHDB` / `FLUSHALL` only remove keys that are on the current server; not the wider logical database
-- `RANDOMKEY` only selects a key that is on the current server; not the wider logical database
+- `KEYS` / `SCAN` 只列出当前服务器上的键; 而不是更广泛的逻辑数据库
+- `FLUSHDB` / `FLUSHALL` 只删除当前服务器上的密钥;而不是更广泛的逻辑数据库
+- `RANDOMKEY` 仅选择当前服务器上的密钥; 而不是更广泛的逻辑数据库
 
-Actually, StackExchange.Redis spoofs the `RANDOMKEY` one on the `IDatabase` API by simply selecting a target server at random, but this is not possible for the others.
+实际上，StackExchange.Redis 通过简单地随机选择目标服务器来欺骗 `IDatabase` API上的 `RANDOMKEY`，但这对其他服务器是不可能的。
 
-So how do I use them?
+那么如何使用它们呢？
 ---
 
-Simple: start from a server, not a database.
+最简单的：从服务器开始，而不是数据库。
 
 ```C#
 // get the target server
@@ -51,11 +53,15 @@ foreach(var key in server.Keys(pattern: "*foo*")) {
 server.FlushDatabase();
 ```
 
-Note that unlike the `IDatabase` API (where the target database has already been selected in the `GetDatabase()` call), these methods take an optional parameter for the database, or it defaults to `0`.
+注意，与 `IDatabase` API（在 `GetDatabase()` 调用中已经选择了的目标数据库）不同，这些方法对数据库使用可选参数，或者默认为`0`。
 
-The `Keys(...)` method deserves special mention: it is unusual in that it does not have an `*Async` counterpart. The reason for this is that behind the scenes, the system will determine the most appropriate method to use (`KEYS` vs `SCAN`, based on the server version), and if possible will use the `SCAN` approach to hand you back an `IEnumerable<RedisKey>` that does all the paging internally - so you never need to see the implementation details of the cursor operations. If `SCAN` is not available, it will use `KEYS`, which can cause blockages at the server. Either way, both `SCAN` and `KEYS` will need to sweep the entire keyspace, so should be avoided on production servers - or at least, targeted at slaves.
+`Keys(...)` 方法值得特别一提：它并不常见，因为它没有一个 `*Async` 对应。 这样做的原因是，在后台，系统将确定使用最合适的方法（基于服务器版本的 `KEYS` VS `SCAN`），如果可能的话，将使用 `SCAN` 方法 一个 `IEnumerable<RedisKey>` 在内部执行所有的分页 - 所以你永远不需要看到游标操作的实现细节。 
+如果 `SCAN` 不可用，它将使用 `KEYS`，这可能导致服务器上的阻塞。 无论哪种方式，`SCAN` 和 `KEYS` 都需要扫描整个键空间，所以在生产服务器上应该避免 - 或者至少是针对从节点服务器。
 
-So I need to remember which server I connected to? That sucks!
+所以我需要记住我连接到哪个服务器？ 这真糟糕！
 ---
 
-No, not quite. You can use `conn.GetEndPoints()` to list the endpoints (either all known, or the ones specified in the original configuration - these are not necessarily the same thing), and iterate with `GetServer()` to find the server you want (for example, selecting a slave).
+不，不完全是。 你可以使用 `conn.GetEndPoints()` 来列出节点（所有已知的节点，或者在原始配置中指定的节点，这些不一定是相同的东西），并且使用 `GetServer()` 迭代找到想要的服务器（例如，选择一个从节点）。
+
+[查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/Docs/KeysScan.md)
+---

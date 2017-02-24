@@ -26,7 +26,7 @@ StackExchange.Redis 是 Stackoverflow 开发的 Redis C# 客户端，是目前.n
 - [x] [配置](Configuration.md)
 - [x] [事件](Events.md)
 - [x] [同步执行](ExecSync.md)
-- [ ] [键查找](KeysScan.md)
+- [x] [键查找](KeysScan.md)
 - [ ] [键与值](KeysValues.md)
 - [ ] [管道与重用链接](PipelinesMultiplexers.md)
 - [ ] [分析](Profiling.md)
