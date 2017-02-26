@@ -1,52 +1,71 @@
-﻿Are you getting network or CPU bound?
+﻿你是否正遇到网络或 CPU 的瓶颈？
 ---------------
-Verify what's the maximum bandwidth supported on your client and on the server where redis-server is hosted. If there are requests that are getting bound by bandwidth, it will take longer for them to complete and thereby can cause timeouts.
-Similarly, verify you are not getting CPU bound on client or on the server box which would cause requests to be waiting for CPU time and thereby have timeouts.
 
-Are there commands taking long time to process on the redis-server?
+验证客户端和托管redis-server的服务器上支持的最大带宽。如果有请求被带宽限制，则它们需要更长时间才能完成，从而可能导致超时。
+同样，验证您没有在客户端或服务器框上获得CPU限制，这将导致请求等待CPU时间，从而超时。
+
+有没有命令需要在 redis 服务器上处理很长时间？
 ---------------
-There can be commands that are taking long time to process on the redis-server causing the request to timeout. Few examples of long running commands are mget with large number of keys, keys * or poorly written lua script. You can run the SlowLog command to see if there are requests taking longer than expected. More details regarding the command can be found [here] (http://redis.io/commands/slowlog) 
 
-Was there a big request preceding several small requests to the Redis that timed out?
+可能有一些命令需要很长时间才能在redis服务器上处理，导致请求超时。
+长时间运行的命令的很少例子有 mget有大量的键，键*或写得不好的lua脚本。
+可以运行通过 SlowLog 命令查看是否有请求花费比预期更长的时间。
+
+在[这里](http://redis.io/commands/slowlog) 可以找到关于命令的更多细节。
+
+在向Redis发出的几个小请求之前是否有大的请求超时？
 ---------------
-The parameter “qs” in the error message tells you how many requests were sent from the client to the server, but have not yet processed a response. For some types of load you might see that this value keeps growing, because StackExchange.Redis uses a single TCP connection and can only read one response at a time.  Even though the first operation timed out, it does not stop the data being sent to/from the server, and other requests are blocked until this is finished. Thereby, causing timeouts. One solution is to minimize the chance of timeouts by ensuring that your redis-server cache is large enough for your workload and splitting large values into smaller chunks. Another possible solution is to use a pool of ConnectionMultiplexer objects in your client, and choose the "least loaded" ConnectionMultiplexer when sending a new request.  This should prevent a single timeout from causing other requests to also timeout.
 
+错误消息中的参数“qs”告诉您有多少从客户端发送到服务器，但尚未处理响应的请求。 
+对于某些类型的加载，您可能会看到此值不断增长，因为 StackExchange.Redis 使用单个TCP连接，并且一次只能读取一个响应。
+即使第一个操作超时，它也不会停止 向服务器发送/从服务器发送 数据，其他请求也会被阻塞，直到该操作完成。 从而，导致超时。
+一个解决方案是通过确保redis-server缓存对于您的工作负载足够大并将大值分割为更小的块来最小化超时的可能性。
 
-Are you seeing high number of busyio or busyworker threads in the timeout exception?
+另一个可能的解决方案是在客户端中使用 ConnectionMultiplexer 对象池，并在发送新请求时选择“最小化加载”ConnectionMultiplexer。 这样可能会防止单个超时导致其他请求也超时。
+
+在超时异常中，是否有很多 busyio 或 busyworker 线程？
 ---------------
-Let's first understand some details on ThreadPool Growth:
+让我们先了解一下 ThreadPool 增长的一些细节：
 
-The CLR ThreadPool has two types of threads - "Worker" and "I/O Completion Port" (aka IOCP) threads.  
+CLR ThreadPool有两种类型的线程 - “工作线程”和“I/O 完成端口”（也称为 IOCP）线程。
 
- - Worker threads are used when for things like processing `Task.Run(…)` or `ThreadPool.QueueUserWorkItem(…)` methods.  These threads are also used by various components in the CLR when work needs to happen on a background thread.
- - IOCP threads are used when asynchronous IO happens (e.g. reading from the network).  
+- 工作线程用于处理 `Task.Run(...)` 或 `ThreadPool.QueueUserWorkItem(...)` 方法时。当工作需要在后台线程上发生时，这些线程也被CLR中的各种组件使用。
+- 当异步IO发生时（例如从网络读取），使用IOCP线程。
 
-The thread pool provides new worker threads or I/O completion threads on demand (without any throttling) until it reaches the "Minimum" setting for each type of thread.  By default, the minimum number of threads is set to the number of processors on a system.  
+线程池根据需要提供新的工作线程或I / O完成线程（无任何调节），直到达到每种类型线程的“最小”设置。 默认情况下，最小线程数设置为系统上的处理器数。
 
-Once the number of existing (busy) threads hits the "minimum" number of threads, the ThreadPool will throttle the rate at which is injects new threads to one thread per 500 milliseconds.  This means that if your system gets a burst of work needing an IOCP thread, it will process that work very quickly.   However, if the burst of work is more than the configured "Minimum" setting, there will be some delay in processing some of the work as the ThreadPool waits for one of two things to happen
-	1. An existing thread becomes free to process the work
-	2. No existing thread becomes free for 500ms, so a new thread is created.
+一旦现有（繁忙）线程的数量达到“最小”线程数，ThreadPool将调节每500毫秒向一个线程注入新线程的速率。 这意味着如果你的系统需要一个IOCP线程的工作，它会很快处理这个工作。 但是，如果工作突发超过配置的“最小”设置，那么在处理一些工作时会有一些延迟，因为ThreadPool会等待两个事情之一发生：
+	1. 现有线程可以自由处理工作
+	2. 连续 500ms 没有现有线程空闲，因此创建一个新线程。
 
-Basically, it means that when the number of Busy threads is greater than Min threads, you are likely paying a 500ms delay before network traffic is processed by the application.  Also, it is important to note that when an existing thread stays idle for longer than 15 seconds (based on what I remember), it will be cleaned up and this cycle of growth and shrinkage can repeat.
+基本上，这意味着当忙线程数大于最小线程时，在应用程序处理网络流量之前，可能需要付出500毫秒的延迟。 
+此外，重要的是要注意，当现有线程保持空闲超过15秒（基于我记得），它将被清理，这个增长和收缩的循环可以重复。
 
-If we look at an example error message from StackExchange.Redis (build 1.0.450 or later), you will see that it now prints ThreadPool statistics (see IOCP and WORKER details below).
+如果我们看一个来自 StackExchange.Redis（build 1.0.450或更高版本）的示例错误消息，您将看到它现在会打印 ThreadPool 统计信息（请参阅下面的IOCP和WORKER详细信息）。
 
 	System.TimeoutException: Timeout performing GET MyKey, inst: 2, mgr: Inactive, 
 	queue: 6, qu: 0, qs: 6, qc: 0, wr: 0, wq: 0, in: 0, ar: 0, 
 	IOCP: (Busy=6,Free=994,Min=4,Max=1000), 
 	WORKER: (Busy=3,Free=997,Min=4,Max=1000)
 
-In the above example, you can see that for IOCP thread there are 6 busy threads and the system is configured to allow 4 minimum threads.  In this case, the client would have likely seen two 500 ms delays because 6 > 4.
+在上面的示例中，您可以看到，对于 IOCP 线程，有6个忙线程，并且系统配置为允许4个最小线程。 在这种情况下，客户端可能会看到两个500毫秒的延迟，因为6> 4。
 
-Note that StackExchange.Redis can hit timeouts if growth of either IOCP or WORKER threads gets throttled.
+请注意，如果 IOCP 或 WORKER 线程的增长受到限制，StackExchange.Redis 可以命中超时。
 
-Recommendation:
-Given the above information, it's recommend to set the minimum configuration value for IOCP and WORKER threads to something larger than the default value.  We can't give one-size-fits-all guidance on what this value should be because the right value for one application will be too high/low for another application.  This setting can also impact the performance of other parts of complicated applications, so you need to fine-tune this setting to your specific needs.  A good starting place is 200 or 300, then test and tweak as needed.
+建议：
 
-How to configure this setting:
+鉴于上述信息，建议将 IOCP 和 WORKER 线程的最小配置值设置为大于默认值的值。 我们不能给出一个大小适合所有指导这个值应该是什么，因为一个应用程序的正确价值将太高/低为另一个应用程序。 
+此设置也会影响复杂应用程序的其他部分的性能，因此您需要根据您的特定需求调整此设置。 
+一个好的起点是200或300，然后根据需要进行测试和调整。
 
- - In ASP.NET, use the ["minIoThreads" configuration setting](https://msdn.microsoft.com/en-us/library/vstudio/7w2sway1(v=vs.100).aspx) under the `<processModel>` configuration element in machine.config. If you are running inside of Azure WebSites, this setting is not exposed through the configuration options. You should be able to set this programmatically (see below) from your Application_Start method in global.asax.cs.
+如何配置这个设置：
 
-> **Important Note:** the value specified in this configuration element is a *per-core* setting.  For example, if you have a 4 core machine and want your minIOThreads setting to be 200 at runtime, you would use `<processModel minIoThreads="50"/>`.
+- 在 ASP.NET 中，使用 machine.config 中 `<processModel>` 配置元素下的[“minIoThreads”配置设置](https://msdn.microsoft.com/en-us/library/vstudio/7w2sway1(v=vs.100).aspx)。 
+如果您在Azure WebSites内部运行，则此设置不会通过配置选项显示。 您应该能够从global.asax.cs 中的 Application_Start 方法以编程方式设置（请参见下文）。
 
- - Outside of ASP.NET, use the [ThreadPool.SetMinThreads(…)](https://msdn.microsoft.com//en-us/library/system.threading.threadpool.setminthreads(v=vs.100).aspx) API.
+> **重要说明：** 此配置元素中指定的值是为*每个核* 设置。例如，如果你有一个4核的机器，并希望你的 minIthreads 设置为200在运行时，你应该使用 `<processModel minIoThreads =“50”/>`。
+
+- 在 ASP.NET 之外，使用 [ThreadPool.SetMinThreads(...)](https://msdn.microsoft.com//en-us/library/system.threading.threadpool.setminthreads(v=vs.100).aspx)API。
+
+[查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/Docs/Timeouts.md)
+---
