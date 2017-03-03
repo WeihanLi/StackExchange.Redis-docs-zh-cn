@@ -33,7 +33,7 @@ StackExchange.Redis 是 Stackoverflow 开发的 Redis C# 客户端，是目前.n
 - [x] [发布订阅顺序](PubSubOrder.md)
 - [x] [脚本](Scripting.md)
 - [x] [超时](Timeouts.md)
-- [ ] [事务](Transactions.md)
+- [x] [事务](Transactions.md)
 
 ## More
 作者水平有限，若有疏漏或错误还望提醒，十分感谢。

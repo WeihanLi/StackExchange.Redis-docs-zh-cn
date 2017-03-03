@@ -1,15 +1,16 @@
-﻿Transactions in Redis
+﻿Redis中的事务
 =====================
 
-Transactions in Redis are not like transactions in, say a SQL database. The [full documentation is here](http://redis.io/topics/transactions),
-but to paraphrase:
+Redis中的事务不像SQL数据库中的事务。
+[完整的文档在这里](http://redis.io/topics/transactions)，这里稍微借用一下：
 
-A transaction in redis consists of a block of commands placed between `MULTI` and `EXEC` (or `DISCARD` for rollback). Once a `MULTI`
-has been encountered, the commands on that connection *are not executed* - they are queued (and the caller gets the reply `QUEUED`
-to each). When an `EXEC` is encountered, they are
-all applied in a single unit (i.e. without other connections getting time between operations). If a `DISCARD` is seen instead of 
-a `EXEC`, everything is thrown away. Because the commands inside the transaction are queued, you can't make decisions *inside*
-the transaction. For example, in a SQL database you might do the following (pseudo-code - illustrative only):
+redis中的事务包括放置在 `MULTI` 和 `EXEC` 之间的一组命令（或者用于回滚的 `DISCARD`）。
+一旦遇到 `MULTI`，该连接相关的命令*不会被执行* - 它们会进入一个队列（并且 每一个命令调用者得到一个答复 `QUEUED`）。
+
+当遇到一个 `EXEC` 时，它们都被应用在一个单元中（即在操作期间没有其他连接获得时间去做任何事）。
+如果看到 `DISCARD` 而不是 `EXEC`，则一切都被抛弃。因为事务中的命令会排队，你不能在事务*里面* 操作。
+
+例如，在SQL数据库中，您可以执行以下操作（伪代码 - 仅供说明）：
 
 ```C#
 // assign a new unique id only if they don't already
@@ -28,18 +29,17 @@ using(var tran = conn.BeginTran())
 }
 ```
 
-So how do you do it in Redis?
+如何在Redis中实现事务呢？
 ---
 
-This simply isn't possible in redis transactions: once the transaction is open you *can't fetch data* - your
-operations are queued. Fortunately, there are two other commands that help us: `WATCH` and `UNWATCH`.
+这在redis事务中是不可能的：一旦事务被打开你*不能获取数据* - 你的操作被排队。 幸运的是，还有另外两个命令帮助我们： `WATCH` 和 `UNWATCH` 。
 
-`WATCH {key}` tells Redis that we are interested in the specified key for the purposes of the transaction.
-Redis will automatically keep track of this key, and any changes will essentially doom our transaction to
-rollback - `EXEC` does the same as `DISCARD` (the caller can detect this and retry from the start). So what
-you *can* do is: `WATCH` a key, check data from that key in the normal way, then `MULTI`/`EXEC` your changes.
-If, when you check the data, you discover that you don't actually need the transaction, you can use `UNWATCH` to
-forget all the watched keys. Note that watched keys are also reset during `EXEC` and `DISCARD`. So *at the Redis layer*, this is conceptually:
+`WATCH {key}` 告诉Redis，我们对用于事务目的的特定的键感兴趣。
+Redis会自动跟踪这个键，任何变化基本上都会使我们的事务回滚 - `EXEC` 和 `DISCARD` 一样（调用者可以检测到这一点，并从头开始重试）。
+所以你可以做的是： `WATCH` 一个键，以正常的方式检查该键的数据，然后 `MULTI` / `EXEC` 你的更改。
+
+如果，当你检查数据，你发现你实际上不需要事务，你可以使用 `UNWATCH` 来取消关注所有关注的键。 
+注意，关注的键在 `EXEC` 和 `DISCARD` 期间也被复位。 所以*在Redis层*，事务是从概念上讲的。
 
 ```
 WATCH {custKey}
@@ -52,19 +52,20 @@ EXEC
 UNWATCH
 ```
 
-This might look odd - having a `MULTI`/`EXEC` that only spans a single operation - but the important thing
-is that we are now also tracking changes to `{custKey}` from all other connections - if anyone else
-changes the key, the transaction will be aborted.
+这可能看起来很奇怪 - 有一个 `MULTI` / `EXEC` 只跨越一个操作 - 但重要的是，我们现在也从其他所有连接跟踪对 `{custKey}` 的更改 - 如果任何人更改键 ，事务将被中止。
 
-And in StackExchange.Redis?
+在 StackExchange.Redis 中如何实现事务？
 ---
 
-This is *further* complicated by the fact that StackExchange.Redis uses a multiplexer approach. We can't simply
-let concurrent callers issue `WATCH` / `UNWATCH` / `MULTI` / `EXEC` / `DISCARD`: it would all be jumbled together. So
-an additional abstraction is provided - additionally making things simpler to get right: *constraints*. *Constraints* are
-basically pre-canned tests involving `WATCH`, some kind of test, and a check on the result. If all the constraints
-pass, the `MULTI`/`EXEC` is issued; otherwise `UNWATCH` is issued. This is all done in a way that prevents the commands being
-mixed together with other callers. So our example becomes:
+说实话，StackExchange.Redis 使用多路复用器方法实现事务更复杂。
+我们不能简单地让并发的调用者发出 `WATCH` / `UNWATCH` / `MULTI` / `EXEC` / `DISCARD`：它会全部混在一起。
+
+因此，StackExchange.Redis 提供了额外的抽象来使事情更简单的变得正常：*constraints*。
+
+*Constraints*  基本上是预先测试涉及 `WATCH` ，一些测试，以及结果的检查。 
+如果所有约束都通过，则触发 `MULTI` / `EXEC` ， 否则触发 `UNWATCH` 。
+
+这是以防止与其他调用者混合在一起的命令的方式完成的。 所以我们的例子变成了：
 
 ```C#
 var newId = CreateNewId();
@@ -75,44 +76,46 @@ bool committed = tran.Execute();
 // ^^^ if true: it was applied; if false: it was rolled back
 ```
 
-Note that the object returned from `CreateTransaction` only has access to the *async* methods - because the result of
-each operation will not be known until after `Execute` (or `ExecuteAsync`) has completed. If the operations are not applied, all the `Task`s
-will be marked as cancelled - otherwise, *after* the command has executed you can fetch the results of each as normal.
+注意，从 `CreateTransaction` 返回的对象只能访问 *async* 方法 - 因为每个操作的结果在 `Execute`（或 `ExecuteAsync` ）完成之前都不会知道。 
+如果操作不应用，所有的任务将被标记为已取消 - 否则，命令执行*后*，您可以正常获取每个的结果。
 
-The set of available *conditions* is not extensive, but covers the most common scenarios; please contact me (or better: submit a pull-request) if
-there are additional conditions that you would like to see.
+可用*条件* 的集合不是广泛的，而是涵盖最常见的情况；如果你还想看到其他条件，请与我联系（或更好的方式：提交 pull-request）。
 
-Inbuilt operations via `When`
+借助 `When` 的内置操作
 ---
 
-It should also be noted that many common scenarios (in particular: key/hash existence, like in the above) have been anticipated by Redis, and single-operation
-atomic commands exist. These are accessed via the `When` parameter - so our previous example can *also* be written as:
+还应该注意的是，Redis 预期已经了许多常见的情况（特别是：密钥/散列 存在，如上所述），所以存在单次操作原子命令。
+
+这些是通过`When`参数访问的 - 所以我们前面的例子可以也可以写成：
 
 ```C#
 var newId = CreateNewId();
 bool wasSet = db.HashSet(custKey, "UniqueID", newId, When.NotExists);
 ```
 
-(here, the `When.NotExists` causes the `HSETNX` command to be used, rather than `HSET`)
+（这里，`When.NotExists` 导致使用 `HSETNX` 命令，而不是 `HSET`）
 
-Lua
+Lua 脚本
 ---
 
-You should also keep in mind that Redis 2.6 and above [support Lua scripting](http://redis.io/commands/EVAL), a versatile tool for performing multiple operations as a single atomic unit at the server.
-Since no other connections are serviced during a Lua script it behaves much like a transaction, but without the complexity of `MULTI` / `EXEC` etc.  This also avoids issues such as bandwidth and latency
-between the caller and the server, but the trade-off is that it monopolises the server for the duration of the script.
+你还应该知道，Redis 2.6及以上版本[支持Lua脚本](http://redis.io/commands/EVAL)，用于在服务器端执行多个作为单个原子单元的操作的通用工具。由于在Lua脚本中没有服务于其他连接，它的行为很像一个事务，但没有 `MULTI` / `EXEC` 等这样复杂。
+这也避免了在调用者和服务器之间的带宽和延迟等问题
+，但是需要与脚本垄断服务器的持续时间之间权衡。
 
-At the Redis layer (and assuming `HSETNX` did not exist) this could be implemented as:
+在Redis层（假设 `HSETNX` 不存在），这可以实现为：
 
 ```
 EVAL "if redis.call('hexists', KEYS[1], 'UniqueId') then return redis.call('hset', KEYS[1], 'UniqueId', ARGV[1]) else return 0 end" 1 {custKey} {newId}
 ```
 
-This can be used in StackExchange.Redis via:
+这可以在 StackExchange.Redis 中使用：
 
 ```C#
 var wasSet = (bool) db.ScriptEvaluate(@"if redis.call('hexists', KEYS[1], 'UniqueId') then return redis.call('hset', KEYS[1], 'UniqueId', ARGV[1]) else return 0 end",
         new RedisKey[] { custKey }, new RedisValue[] { newId });
 ```
 
-(note that the response from `ScriptEvaluate` and `ScriptEvaluateAsync` is variable depending on your exact script; the response can be interpreted by casting - in this case as a `bool`)
+（注意 `ScriptEvaluate` 和 `ScriptEvaluateAsync` 的响应是可变的，这取决于你确切的脚本，响应可以被强制中断 - 在这种情况下为 `bool`）
+
+[查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/Docs/Transactions.md)
+---
