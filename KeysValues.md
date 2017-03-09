@@ -1,22 +1,34 @@
-﻿Keys, Values and Channels
+﻿键，值和通道
 ===
 
-In dealing with redis, there is quite an important distinction between *keys* and *everything else*. A key is the unique name of a piece of data (which could be a String, a List, Hash, or any of the other [redis data types](http://redis.io/topics/data-types)) within a database. Keys are never interpreted as... well, anything: they are simply inert names. Further - when dealing with clustered or sharded systems, it is the key that defines the node (or nodes if there are slaves) that contain this data - so keys are crucial for routing commands.
+在处理redis时，是键不是键之间有很重要的区别。
+键是数据库中数据片段（可以是String，List，Hash或任何其他[redis数据类型](http://redis.io/topics/data-types)）的独一无二的名称。
+键永远不会被解释为...好吧，任何东西：它们只是惰性名称。
+此外，当处理集群或分片系统时，它是定义包含此数据的节点（或者如果有从节点的节点）的关键 - 因此键对于路由命令是至关重要的。
 
-This contrasts with *values*; values are the *things that you store* against keys - either individually (for String data) or as groups. Values do not affect command routing <small>(caveat: except for [the `SORT` command](http://redis.io/commands/sort) when `BY` or `GET` is specified, but that is *really* complicated to explain)</small>. Likewise, values are often *interpreted* by redis for the purposes of an operation:
+这与 *值* 形成对比； 值是单独（对于字符串数据）或分组对键的*内容存储*  。
+值不影响命令路由 <small>（注意：使用 SORT 命令时除非指定 BY 或者 GET，否则是很难解释的）</small>
 
-- `incr` (and the various similar commands) interpret String values as numeric data
-- sorting can interpret values using either numeric or unicode rules
-- and many others
+同样，为了操作的目的，值通常被redis翻译为：
 
-The key point is that the API needs to understand what is a key and what is a value. This is reflected in the StackExchange.Redis API, but the good news is that **most of the time** you don't need to know about this at all.
+- `incr` （和各种类似的命令）将String值转换为数值数据
+- 排序可以使用数字或unicode规则解释值
+- 和许多其他操作
 
-When using pub/sub, we are dealing with *channels*; channels do not affect routing (so they are not keys), but are quite distinct from regular values, so are considered separately.
+关键是使用API需要理解什么是键，什么是值。 
+这反映在StackExchange.Redis API中，但是好消息是，**大部分时间**你根本不需要知道这一点。
 
-Keys
+当使用 发布/订阅 时，我们处理 *channels* ; channel 不会影响路由（因此它们不是密钥），但与常规值非常不同，因此要单考虑。
+
+键
 ---
 
-StackExchange.Redis represents keys by the `RedisKey` type. The good news, though, is that this has implicit conversions to and from both `string` and `byte[]`, allowing both text and binary keys to be used without any complication. For example, the `StringIncrement` method takes a `RedisKey` as the first parameter, but *you don't need to know that*; for example:
+StackExchange.Redis 通过 `RedisKey` 类型表示键。
+好消息是，可以从 `string` 和 `byte[]` 的隐式转换，允许使用文本和二进制密钥，没有任何复杂性。
+
+例如，`StringIncrement` 方法使用一个 `RedisKey` 作为第一个参数，但是*你不需要知道* ; 
+
+举个例子：
 
 ```C#
 string key = ...
@@ -30,22 +42,22 @@ byte[] key = ...
 db.StringIncrement(key);
 ```
 
-Likewise, there are operations that *return* keys as `RedisKey` - and again, it simply works:
+同样，有一些操作*返回* 键为 `RedisKey` - 再次，它依然可以自动隐式转换：
 
 ```C#
 string someKey = db.KeyRandom();
 ```
 
-Values
+值
 ---
 
-StackExchange.Redis represents values by the `RedisValue` type. As with `RedisKey`, there are implicit conversions in place which mean that most of the time you never see this type, for example:
+StackExchange.Redis 用 `RedisValue` 类型表示值。 与 `RedisKey` 一样，存在隐式转换，这意味着大多数时候你从来没有看到这种类型，例如：
 
 ```C#
 db.StringSet("mykey", "myvalue");
 ```
 
-However, in addition to text and binary contents, values can also need to represent typed primitive data - most commonly (in .NET terms) `Int32`, `Int64`, `Double` or `Boolean`. Because of this, `RedisValue` provides a lot more conversion support than `RedisKey`:
+然而，除了文本和二进制内容，值还可能需要表示类型化的原始数据 - 最常见的（在.NET术语中）`Int32`，`Int64`，`Double`或`Boolean`。 因此，`RedisValue`提供了比 `RedisKey` 更多的转换支持：
 
 ```C#
 db.StringSet("mykey", 123); // this is still a RedisKey and RedisValue
@@ -53,16 +65,16 @@ db.StringSet("mykey", 123); // this is still a RedisKey and RedisValue
 int i = (int)db.StringGet("mykey");
 ```
 
-Note that while the conversions from primitives to `RedisValue` are implicit, many of the conversions from `RedisValue` to primitives are explicit: this is because it is very possible that these conversions will fail if the data does not have an appropriate value.
+请注意，虽然从基元类型到 `RedisValue` 的转换是隐式的，但是从 `RedisValue` 到基元类型的许多转换是显式的：这是因为如果数据没有合适的值，这些转换很可能会失败。
 
-Note additionally that *when treated numerically*, redis treats a non-existent key as zero; for consistency with this, nil responses are treated as zero:
+另外注意，*当做数字* 处理时，redis将不存在的键视为零; 为了与此一致，将空响应视为零：
 
 ```C#
 db.KeyDelete("abc");
 int i = (int)db.StringGet("abc"); // this is ZERO
 ```
 
-If you need to detect the nil condition, then you can check for that:
+如果您需要检测空状态，那么你就可以这样检查：
 
 ```C#
 db.KeyDelete("abc");
@@ -70,47 +82,50 @@ var value = db.StringGet("abc");
 bool isNil = value.IsNull; // this is true
 ```
 
-or perhaps more simply, just use the provided `Nullable<T>` support:
+或者更简单地，只是使用提供的 `Nullable <T>` 支持：
 
 ```C#
 db.KeyDelete("abc");
 var value = (int?)db.StringGet("abc"); // behaves as you would expect
 ```
 
-Hashes
+哈希
 ---
 
-Since the field names in hashes do not affect command routing, they are not keys, but can take both text and binary names; thus they are treated as values for the purposes of the API.
+由于哈希中的字段名称不影响命令路由，它们不是键，但可以接受文本和二进制名称， 因此它们被视为用于API目的的值。
 
-Channels
+通道
 ---
 
-Channel names for pub/sub are represented by the `RedisChannel` type; this is largely identical to `RedisKey`, but is handled independently since while channel-names are rightly first-class elements, they do not affect command routing.
+发布/订阅 的通道名称由 `RedisChannel` 类型表示; 这与 `RedisKey` 大体相同，但是是独立处理的，因为虽然通道名是正当的第一类元素，但它们不影响命令路由。
 
-Scripting
+脚本
 ---
 
-[Lua scripting in redis](http://redis.io/commands/EVAL) has two notable features:
+[redis中的脚本](http://redis.io/commands/EVAL) 有两项显著的特性：
 
-- the inputs must keep keys and values separate (which inside the script become `KEYS` and `ARGV`, respectively)
-- the return format is not defined in advance: it is specific to your script
+- 输入必须保持键和值分离（在脚本内部分别成为 `KEYS` 和 `ARGV`）
+- 返回格式未预先定义：这将特定于您的脚本
 
-Because of this, the `ScriptEvaluate` method accepts two separate input arrays: one `RedisKey[]` for the keys, one `RedisValue[]` for the values (both are optional, and are assumed to be empty if omitted). This is probably one of the few times that you'll actually need to type `RedisKey` or `RedisValue` in your code, and that is just because of array variance rules:
+正因为如此，`ScriptEvaluate` 方法接受两个独立的输入数组：一个用于键的 `RedisKey []`，一个用于值的 `RedisValue []` （两者都是可选的，如果省略则假定为空）。 这可能是你实际需要在代码中键入 `RedisKey` 或 `RedisValue` 的少数几次之一，这只是因为数组变动规则：
 
 ```C#
-var result = db.ScriptEvaluate(TransferScript,
+    var result = db.ScriptEvaluate(TransferScript,
     new RedisKey[] { from, to }, new RedisValue[] { quantity });
 ```
 
-(where `TransferScript` is some `string` containing Lua, not shown for this example)
+（其中 `TransferScript` 是一些包含Lua的 `string`，在这个例子中没有显示）
 
-The response uses the `RedisResult` type (this is unique to scripting; usually the API tries to represent the response as directly and clearly as possible). As before, `RedisResult` offers a range of conversion operations - more, in fact than `RedisValue`, because in addition to being interpreted as text, binary, primitives and nullable-primitives, the response can *also* be interpreted as *arrays* of such, for example:
+响应使用 `RedisResult` 类型（这是脚本专用的;通常API尝试尽可能直接清晰地表示响应）。 和前面一样， `RedisResult` 提供了一系列转换操作 - 实际上比 `RedisValue` 更多，因为除了可以转换为文本，二进制，一些基元类型和可空元素，响应*也*可以转换为 *数组* ，例如：
 
 ```C#
 string[] items = db.ScriptEvaluate(...);
 ```
 
-Conclusion
+结论
 ---
 
-The types used in the API are very deliberately chosen to distinguish redis *keys* from *values*. However, in virtually all cases you will not need to directly refer to the underlying types involved, as conversion operations are provided.
+API中使用的类型是非常故意选择的，以区分redis *keys* 和 *values*。 然而，在几乎所有情况下，您不需要直接去参考所涉及的底层类型，因为提供了转换操作。
+
+[查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/Docs/KeysValues.md)
+---
