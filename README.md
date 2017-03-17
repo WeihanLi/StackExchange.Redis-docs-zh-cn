@@ -21,20 +21,6 @@ StackExchange.Redis 是 Stackoverflow 开发的 Redis C# 客户端，是目前.n
 * Gitbook : <https://www.gitbook.com/book/weihanli/stackexchange-redis-docs-cn/details>   
 * [点击阅读](https://weihanli.gitbooks.io/stackexchange-redis-docs-cn/)  [下载 PDF](https://www.gitbook.com/download/pdf/book/weihanli/stackexchange-redis-docs-cn)
 
-## 翻译进度
-- [x] [基础](Basics.md)
-- [x] [配置](Configuration.md)
-- [x] [事件](Events.md)
-- [x] [同步执行](ExecSync.md)
-- [x] [键查找](KeysScan.md)
-- [x] [键与值](KeysValues.md)
-- [x] [管道与重用链接](PipelinesMultiplexers.md)
-- [ ] [分析](Profiling.md)
-- [x] [发布订阅顺序](PubSubOrder.md)
-- [x] [脚本](Scripting.md)
-- [x] [超时](Timeouts.md)
-- [x] [事务](Transactions.md)
-
 ## More
 作者水平有限，若有疏漏或错误还望提醒，十分感谢。
 

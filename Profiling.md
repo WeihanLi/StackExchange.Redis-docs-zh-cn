@@ -1,49 +1,46 @@
-﻿Profiling
+﻿分析
 ===
 
-StackExchange.Redis exposes a handful of methods and types to enable performance profiling.  Due to its asynchronous and multiplexing 
-behavior profiling is a somewhat complicated topic.
+StackExchange.Redis公开了一些方法和类型来启用性能分析。 由于其异步和多路复用
+表现分析是一个有点复杂的主题。
 
-Interfaces
+接口
 ---
 
-The profiling interface is composed of `IProfiler`, `ConnectionMultiplexer.RegisterProfiler(IProfiler)`, `ConnectionMultiplexer.BeginProfiling(object)`,
-`ConnectionMultiplexer.FinishProfiling(object)`, and `IProfiledCommand`.
+分析接口由 `IProfiler`, `ConnectionMultiplexer.RegisterProfiler(IProfiler)` ，`ConnectionMultiplexer.BeginProfiling(object)` ，
+`ConnectionMultiplexer.FinishProfiling(object)` 和 `IProfiledCommand`。
 
-You register a single `IProfiler` with a `ConnectionMultiplexer` instance, it cannot be changed.  You begin profiling for a given context (ie. Thread,
-Http Request, and so on) by calling `BeginProfiling(object)`, and finish by calling `FinishProfiling(object)`.  `FinishProfiling(object)` returns
-a collection of `IProfiledCommand`s which contain timing information for all commands sent to redis by the configured `ConnectionMultiplexer` between
-the `(Begin|Finish)Profiling` calls with the given context.
+你可以用一个 `ConnectionMultiplexer` 实例注册一个  `IProfiler` ，它不能被改变。你可以通过调用 `BeginProfiling(object)` 开始分析一个给定的上下文对象（例如，线程，Http请求等等），调用 `FinishProfiling(object)` 来完成。
+`FinishProfiling(object)` 返回一个 `IProfiledCommand` 集合的对象，它包含了通过 `(Begin|Finish)Profiling` 调用和给定上下文配置好的 `ConnectionMultiplexer` 对象发送到 redis 的所有命令的时间信息。
+ 
+应该使用什么“上下文”对象是应用程序来确定的。
 
-What "context" object should be used is application specific.
-
-Available Timings
+可用时间
 ---
 
-StackExchange.Redis exposes information about:  
+StackExchange.Redis显示有关以下内容的信息：
 
- - The redis server involved
- - The redis DB being queried
- - The redis command run
- - The flags used to route the command
- - The initial creation time of a command
- - How long it took to enqueue the command
- - How long it took to send the command, after it was enqueued
- - How long it took the response from redis to be received, after the command was sent
- - How long it took for the response to be processed, after it was received
- - If the command was sent in response to a cluster ASK or MOVED response
-   - If so, what the original command was
+- 涉及到的redis服务器
+- 正在查询的redis数据库
+- redis命令运行
+- 用于路由命令的标志
+- 命令的初始创建时间
+- 使命令进入队列所需的时间
+- 命令入队后，发送命令需要多长时间
+- 发送命令后，从redis接收响应需要多长时间
+- 收到响应后处理响应所需的时间
+- 如果命令是响应集群 ASK 或 MOVED 响应而发送的
+    - 如果是，原始命令是什么
 
-`TimeSpan`s are high resolution, if supported by the runtime.  `DateTime`s are only as precise as `DateTime.UtcNow`.
+`TimeSpan` 有较高的精度，如果运行时支持。 `DateTime` 准确度如 `DateTime.UtcNow`。
 
-Choosing Context
+选择上下文
 ---
 
-Due to StackExchange.Redis's asynchronous interface, profiling requires outside assistance to group related commands together.  This is achieved
-by providing context objects when you start and end profiling (via the `BeginProfiling(object)` & `FinishProfiling(object)` methods), and when a
-command is sent (via the `IProfiler` interface's `GetContext()` method).
+由于StackExchange.Redis的异步接口，分析需要外部协助将相关的命令组合在一起。 这是实现的
+通过提供上下文对象，当你开始和结束profiling（通过 `BeginProfiling(object)` ＆ `FinishProfiling(object)` 方法），当一个命令被发送（通过 `IProfiler` 接口的 `GetContext()` 方法）。
 
-A toy example of associating commands issued from many different threads together
+一个将许多不同线程发出的命令关联在一起的玩具示例：
 
 ```C#
 class ToyProfiler : IProfiler
@@ -102,9 +99,9 @@ threads.ForEach(thread => thread.Join());
 IEnumerable<IProfiledCommand> timings = conn.FinishProfiling(thisGroupContext);
 ```
 
-At the end, `timings` will contain 16,000 `IProfiledCommand` objects - one for each command issued to redis.
+最后，`timings` 将包含16,000个 `IProfiledCommand` 对象 - 每个发送给redis的命令对应一个对象。
 
-If instead you did the following:
+如果相反，你像下面这样做：
 
 ```C#
 ConnectionMultiplexer conn = /* initialization */;
@@ -149,11 +146,11 @@ threads.ForEach(thread => thread.Start());
 threads.ForEach(thread => thread.Join());
 ```
 
-`perThreadTimings` would end up with 16 entries of 1,000 `IProfilingCommand`s, keyed by the `Thread` the issued them.
+`perThreadTimings` 最终会有1000个 `IProfilingCommand` 的16个，键由 `Thread` 发出。
 
-Moving away from toy examples, here's how you can profile StackExchange.Redis in an MVC5 application.
+不再看玩具示例，这里是如何在一个MVC5应用程序中配置 StackExchange.Redis。
 
-First register the following `IProfiler` against your `ConnectionMultiplexer`:
+首先针对你的 `ConnectionMultiplexer` 对象注册以下 `IProfiler`：
 
 ```C#
 public class RedisProfiler : IProfiler
@@ -181,7 +178,7 @@ public class RedisProfiler : IProfiler
 }
 ```
 
-Then, add the following to your Global.asax.cs file:
+然后，将以下内容添加到 Global.asax.cs 文件：
 
 ```C#
 protected void Application_BeginRequest()
@@ -205,4 +202,7 @@ protected void Application_EndRequest()
 }
 ```
 
-This implementation will group all redis commands, including `async/await`-ed ones, with the http request that initiated them.
+这个实现将所有redis命令（包括 `async / await` -ed命令）与触发它们的http请求分组。
+
+[查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/Docs/Profiling.md)
+---
