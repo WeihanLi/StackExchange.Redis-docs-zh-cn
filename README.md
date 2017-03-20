@@ -19,7 +19,9 @@ StackExchange.Redis 是 Stackoverflow 开发的 Redis C# 客户端，是目前.n
 ## StackExchange.Redis 中文使用文档
 * Github：<https://github.com/WeihanLi/StackExchange.Redis-docs-cn>
 * Gitbook : <https://www.gitbook.com/book/weihanli/stackexchange-redis-docs-cn/details>   
-* [点击阅读](https://weihanli.gitbooks.io/stackexchange-redis-docs-cn/)  [下载 PDF](https://www.gitbook.com/download/pdf/book/weihanli/stackexchange-redis-docs-cn)
+
+  - [点击阅读](https://weihanli.gitbooks.io/stackexchange-redis-docs-cn/)  
+  - [下载 PDF](https://www.gitbook.com/download/pdf/book/weihanli/stackexchange-redis-docs-cn)
 
 
 ## 目录
@@ -40,6 +42,6 @@ StackExchange.Redis 是 Stackoverflow 开发的 Redis C# 客户端，是目前.n
 ## More
 作者水平有限，若有疏漏或错误还望提醒，十分感谢。
 
-您可以 [提出问题](https://github.com/WeihanLi/StackExchange.Redis-docs-cn/issues/new) 或者给我[发邮件](mailto:ben121011@126.com)。
+您可以 [提出问题](https://github.com/WeihanLi/StackExchange.Redis-docs-cn/issues/new) 或者给我 [发邮件](mailto:ben121011@126.com)。
 
 ### Contact me:<ben121011@126.com>
