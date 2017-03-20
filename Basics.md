@@ -50,7 +50,7 @@ object asyncState = ...
 IDatabase db = redis.GetDatabase(databaseNumber, asyncState);
 ```
 
-一旦你有了'IDatabase'，它只是一个使用 [redis API](http://redis.io/commands) 的情况。 
+一旦你有了`IDatabase`，它只是一个使用 [redis API](http://redis.io/commands) 的情况。 
 注意，所有方法都具有同步和异步实现。 
 根据微软的命名指导，异步方法都以 `...Async(...)` 结尾，并且完全是可以等待的 `await` 等。
 
