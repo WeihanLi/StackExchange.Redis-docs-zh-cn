@@ -124,7 +124,7 @@ if (value == null) {
 return value;
 ```
 
-[查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/Docs/PipelinesMultiplexers.md)
+[查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/docs/PipelinesMultiplexers.md)
 ---
 
   [1]: http://msdn.microsoft.com/en-us/library/dd460717(v=vs.110).aspx

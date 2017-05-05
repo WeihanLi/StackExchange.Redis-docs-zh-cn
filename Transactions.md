@@ -117,5 +117,5 @@ var wasSet = (bool) db.ScriptEvaluate(@"if redis.call('hexists', KEYS[1], 'Uniqu
 
 （注意 `ScriptEvaluate` 和 `ScriptEvaluateAsync` 的响应是可变的，这取决于你确切的脚本，响应可以被强制（类型）转换- 在这种情况下为 `bool`）
 
-[查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/Docs/Transactions.md)
+[查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/docs/Transactions.md)
 ---

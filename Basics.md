@@ -170,7 +170,7 @@ Console.WriteLine(value); // writes: "abcdefg"
 db.StringIncrement(pageKey, flags: CommandFlags.FireAndForget);
 ```
 
-[查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/Docs/Basics.md)
+[查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/docs/Basics.md)
 ---
 
   [1]: http://msdn.microsoft.com/en-us/library/dd460717%28v=vs.110%29.aspx

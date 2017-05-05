@@ -60,5 +60,5 @@ Any object that exposes field or property members with the same name as @-prefix
 
 `LuaScript` 和 `LoadedLuaScript` 上的所有方法都有Async替代方法，并将提交到redis的实际脚本公开为 `ExecutableScript` 属性。
 
-[查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/Docs/Scripting.md)
+[查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/docs/Scripting.md)
 ---

@@ -63,5 +63,5 @@ server.FlushDatabase();
 
 不，不完全是。 你可以使用 `conn.GetEndPoints()` 来列出节点（所有已知的节点，或者在原始配置中指定的节点，这些不一定是相同的东西），并且使用 `GetServer()` 迭代找到想要的服务器（例如，选择一个从节点）。
 
-[查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/Docs/KeysScan.md)
+[查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/docs/KeysScan.md)
 ---

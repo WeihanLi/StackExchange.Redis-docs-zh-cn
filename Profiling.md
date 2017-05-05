@@ -204,5 +204,5 @@ protected void Application_EndRequest()
 
 这个实现将所有redis命令（包括 `async / await` -ed命令）与触发它们的http请求分组。
 
-[查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/Docs/Profiling.md)
+[查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/docs/Profiling.md)
 ---

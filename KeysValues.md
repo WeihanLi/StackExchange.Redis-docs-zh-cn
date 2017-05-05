@@ -127,5 +127,5 @@ string[] items = db.ScriptEvaluate(...);
 
 API中使用的类型是非常故意选择的，以区分redis *keys* 和 *values*。 然而，在几乎所有情况下，您不需要直接去参考所涉及的底层类型，因为提供了转换操作。
 
-[查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/Docs/KeysValues.md)
+[查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/docs/KeysValues.md)
 ---
