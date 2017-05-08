@@ -3,7 +3,7 @@
 ## Intro
 翻译 StackExchange.Redis 的文档
 
-原文文档在线地址： <https://github.com/StackExchange/StackExchange.Redis/tree/master/Docs>  
+原文文档在线地址： <https://github.com/StackExchange/StackExchange.Redis/tree/master/docs>
  
 ## Redis 简介
 Redis是一个使用ANSI C编写的开源、支持网络、基于内存、可选持久性的键值对存储数据库。
