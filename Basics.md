@@ -106,7 +106,7 @@ sub.Publish("messages", "hello");
 
 这将（实际上瞬间）将“hello”写到订阅进程的控制台。 和之前一样，通道名和消息都可以是二进制的。
 
-有关顺序和并发消息处理的使用文档说明，请参见 [发布/订阅消息顺序](https://github.com/StackExchange/StackExchange.Redis/blob/master/Docs/PubSubOrder.md) 。
+有关顺序和并发消息处理的使用文档说明，请参见 [发布/订阅消息顺序](PubSubOrder.md) 。
 
 访问单独的服务器
 ---
