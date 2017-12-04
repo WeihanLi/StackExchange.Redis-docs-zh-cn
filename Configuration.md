@@ -65,28 +65,35 @@ var conn = ConnectionMultiplexer.Connect("contoso5.redis.cache.windows.net,ssl=t
 
 一些更常用的选项包括：
 
-| 配置字符串   | `ConfigurationOptions` | 含义                                                                         |
-| ---------------------- | ---------------------- | ------------------------------------------------------------------------------- |
-| abortConnect={bool}    | `AbortOnConnectFail`   | 如果为true，`Connect` 没有服务器可用时将不会创建连接  |
-| allowAdmin={bool}     | `AllowAdmin`           | 启用被认为具有风险的一系列命令                          |
-| channelPrefix={string} | `ChannelPrefix`        | 所有发布/订阅操作的可选频道前缀                         |
-| connectRetry={int}     | `ConnectRetry`         | 在初始 `Connect` 期间重复连接尝试的次数       |
-| connectTimeout={int}   | `ConnectTimeout`       | 连接操作的超时时间（ms）                                   |
-| configChannel={string} | `ConfigurationChannel` | 用于传达配置更改的广播通道名称                  |
-| defaultDatabase={int}  | `DefaultDatabase`      | 默认数据库索引, 从 `0` 到 `databases - 1`（0 到 Databases.Count -1）
-| keepAlive={int}        | `KeepAlive`            | 发送消息以帮助保持套接字活动的时间（秒）         |
-| name={string}          | `ClientName`           | 标识 redis 中的连接                             |
-| password={string}      | `Password`             | redis 服务器的密码                                             |
-| proxy={proxy type}     | `Proxy`                | 正在使用的代理类型（如果有）; 例如“twemproxy”                        |
-| resolveDns={bool}      | `ResolveDns`           | 指定DNS解析应该是显式和热切，而不是隐式 |
-| serviceName={string}   | `ServiceName`          | 目前尚未实施（预期与sentinel一起使用）                   |
-| ssl={bool}             | `Ssl`                  | 指定应使用SSL加密                               |
-| sslHost={string}       | `SslHost`              | 在服务器证书上强制执行特定的SSL主机标识             |
-| syncTimeout={int}      | `SyncTimeout`          | 允许同步操作的时间（ms）                                  |
-| tiebreaker={string}    | `TieBreaker`           | 用于在不明确的主场景中选择服务器的键             |
-| version={string}       | `DefaultVersion`       | Redis版本级别（当服务器要使用的版本默认不可用时使用）     |
-| writeBuffer={int}      | `WriteBuffer`          | 输出缓冲区的大小                                                     |
+| 配置字符串   | `ConfigurationOptions` | 默认值 | 含义                                                                         |
+| ---------------------- | ---------------------- | ----------------------------|--------------------------------------------------- |
+| abortConnect={bool}    | `AbortOnConnectFail`   | `true` (Azure 上默认值为 `false`) | 如果为true，`Connect` 没有服务器可用时将不会创建连接  |
+| allowAdmin={bool}     | `AllowAdmin` | `false`          | 启用被认为具有风险的一系列命令                          |
+| channelPrefix={string} | `ChannelPrefix` | `null`       | 所有发布/订阅操作的可选频道前缀                         |
+| connectRetry={int}     | `ConnectRetry` | `3`        | 在初始 `Connect` 期间重复连接尝试的次数       |
+| connectTimeout={int}   | `ConnectTimeout`  | `5000`     | 连接操作的超时时间（ms）                                   |
+| configChannel={string} | `ConfigurationChannel` | `__Booksleeve_MasterChanged` | 用于传达配置更改的广播通道名称                  |
+| configCheckSeconds={int} | `ConfigCheckSeconds`  | `60`                         | 检查配置的时间（秒）。如果支持的话，这会以交互式套接字的方式保持活动。    |
+| defaultDatabase={int}  | `DefaultDatabase` | `null`     | 默认数据库索引, 从 `0` 到 `databases - 1`（0 到 Databases.Count -1）
+| keepAlive={int}        | `KeepAlive` | `-1`           | 发送消息以帮助保持套接字活动的时间（秒）（默认时间60s）         |
+| name={string}          | `ClientName` | `null`          | 标识 redis 中的连接                             |
+| password={string}      | `Password`  | `null`           | redis 服务器的密码                                             |
+| proxy={proxy type}     | `Proxy` | `Proxy.None`               | 正在使用的代理类型（如果有）; 例如“twemproxy”                        |
+| resolveDns={bool}      | `ResolveDns` | `false`          | 指定DNS解析应该是显式和热切，而不是隐式 |
+| serviceName={string}   | `ServiceName` | `null`  | 目前尚未实施（预期与sentinel一起使用）                   |
+| ssl={bool}             | `Ssl` | `false`       | 指定应使用SSL加密                               |
+| sslHost={string}       | `SslHost`   | `null`           | 在服务器证书上强制执行特定的SSL主机标识             |
+| syncTimeout={int}      | `SyncTimeout` | `1000`         | 允许同步操作的时间（ms）                                  |
+| tiebreaker={string}    | `TieBreaker` | `__Booksleeve_TieBreak`          | 用于在不明确的主场景中选择服务器的键             |
+| version={string}       | `DefaultVersion` | `(3.0 in Azure, else 2.0)`      | Redis版本级别（当服务器要使用的版本默认不可用时使用）     |
+| writeBuffer={int}      | `WriteBuffer`  | `4096`        | 输出缓冲区的大小                                                     |
 | ReconnectRetryPolicy={IReconnectRetryPolicy}   | `ReconnectRetryPolicy`          |  重新连接重试策略  |
+
+补充的只有代码才支持的选项：
+
+> ReconnectRetryPolicy (IReconnectRetryPolicy) - Default: ReconnectRetryPolicy = LinearRetry(ConnectTimeout);
+
+- 重连重试策略（`IReconnectRetryPolicy`）。默认设置：`ReconnectRetryPolicy = LinearRetry(ConnectTimeout);`
 
 配置字符串中的令牌是逗号分隔的;任何没有`=`符号的都假定为redis服务器端点。
 没有显式端口的端点将在未启用ssl的情况下使用6379，如果启用了ssl则使用6380。
