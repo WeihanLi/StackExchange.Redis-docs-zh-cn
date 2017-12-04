@@ -50,7 +50,9 @@ CLR ThreadPool有两种类型的线程 - “工作线程”和“I/O 完成端�
 
 在上面的示例中，您可以看到，对于 IOCP 线程，有6个忙线程，并且系统配置为允许4个最小线程。 在这种情况下，客户端可能会看到两个500毫秒的延迟，因为6> 4。
 
-请注意，如果 IOCP 或 WORKER 线程的增长受到限制，StackExchange.Redis 可以命中超时。
+请注意，如果 IOCP 或 WORKER 线程的增长受到限制，StackExchange.Redis 可能会超时。
+
+同样需要注意的是 如果你使用的 .NET Core 版本使用的 `netstandard` 版本小于 2.0，IOCP 和 WORKER 线程将不会显示。
 
 建议：
 
@@ -60,12 +62,16 @@ CLR ThreadPool有两种类型的线程 - “工作线程”和“I/O 完成端�
 
 如何配置这个设置：
 
-- 在 ASP.NET 中，使用 machine.config 中 `<processModel>` 配置元素下的[“minIoThreads”配置设置](https://msdn.microsoft.com/en-us/library/vstudio/7w2sway1(v=vs.100).aspx)。 
-如果您在Azure WebSites内部运行，则此设置不会通过配置选项显示。 您应该能够从global.asax.cs 中的 Application_Start 方法以编程方式设置（请参见下文）。
+
+- 在 ASP.NET 中，使用 machine.config 中 `<processModel>` 配置元素下的[“minIoThreads”配置设置](https://msdn.microsoft.com/en-us/library/7w2sway1(v=vs.71).aspx)。 根据微软的做法，你不能修改每个站点 web.config 中的这个值（即使你过去这样做是可以的），如果你这样改的话你所有的.NET 站点都会使用这个设置的值。
+请注意如果你设置 `autoconfig` 为 `false` 是不需要添加每一个属性的，仅需要添加 `autoconfig="false"` 并且覆盖原来的值就可以了：
+`<processModel autoConfig="false" maxIoThreads="250" />`
 
 > **重要说明：** 此配置元素中指定的值是为*每个核* 设置。例如，如果你有一个4核的机器，并希望你的 minIthreads 设置为200在运行时，你应该使用 `<processModel minIoThreads =“50”/>`。
 
 - 在 ASP.NET 之外，使用 [ThreadPool.SetMinThreads(...)](https://msdn.microsoft.com//en-us/library/system.threading.threadpool.setminthreads(v=vs.100).aspx)API。
+
+- 在 .NET Core 中 添加环境变量 `COMPlus_ThreadPool_ForceMinWorkerThreads` 来覆盖默认的 `MinThreads` 设置，参考 [Environment/Registry Configuration Knobs](https://github.com/dotnet/coreclr/blob/master/Documentation/project-docs/clr-configuration-knobs.md)
 
 [查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/docs/Timeouts.md)
 ---
