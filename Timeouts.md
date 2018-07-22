@@ -65,9 +65,9 @@ CLR ThreadPool有两种类型的线程 - “工作线程”和“I/O 完成端�
 
 - 在 ASP.NET 中，使用 machine.config 中 `<processModel>` 配置元素下的[“minIoThreads”配置设置](https://msdn.microsoft.com/en-us/library/7w2sway1(v=vs.71).aspx)。 根据微软的做法，你不能修改每个站点 web.config 中的这个值（即使你过去这样做是可以的），如果你这样改的话你所有的.NET 站点都会使用这个设置的值。
 请注意如果你设置 `autoconfig` 为 `false` 是不需要添加每一个属性的，仅需要添加 `autoconfig="false"` 并且覆盖原来的值就可以了：
-`<processModel autoConfig="false" maxIoThreads="250" />`
+`<processModel autoConfig="false" minIoThreads="250" />`
 
-> **重要说明：** 此配置元素中指定的值是为*每个核* 设置。例如，如果你有一个4核的机器，并希望你的 minIthreads 设置为200在运行时，你应该使用 `<processModel minIoThreads =“50”/>`。
+> **重要说明：** 此配置元素中指定的值是为*每个核* 设置。例如，如果你有一个4核的机器，并希望你的 minIthreads 设置为200在运行时，你应该使用 `<processModel minIoThreads ="50"/>`。
 
 - 在 ASP.NET 之外，使用 [ThreadPool.SetMinThreads(...)](https://msdn.microsoft.com//en-us/library/system.threading.threadpool.setminthreads(v=vs.100).aspx)API。
 
