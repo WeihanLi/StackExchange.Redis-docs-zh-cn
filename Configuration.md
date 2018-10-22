@@ -80,6 +80,7 @@ var conn = ConnectionMultiplexer.Connect("contoso5.redis.cache.windows.net,ssl=t
 | password={string}      | `Password`  | `null`           | redis 服务器的密码                                             |
 | proxy={proxy type}     | `Proxy` | `Proxy.None`               | 正在使用的代理类型（如果有）; 例如“twemproxy”                        |
 | resolveDns={bool}      | `ResolveDns` | `false`          | 指定DNS解析应该是显式和热切，而不是隐式 |
+| responseTimeout={int}  | `ResponseTimeout`      | `SyncTimeout`                | socket 健康检查的响应时间（ms，毫秒）                    |
 | serviceName={string}   | `ServiceName` | `null`  | 目前尚未实施（预期与sentinel一起使用）                   |
 | ssl={bool}             | `Ssl` | `false`       | 指定应使用SSL加密                               |
 | sslHost={string}       | `SslHost`   | `null`           | 在服务器证书上强制执行特定的SSL主机标识             |
