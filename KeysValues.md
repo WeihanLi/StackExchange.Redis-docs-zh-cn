@@ -129,3 +129,6 @@ API中使用的类型是非常故意选择的，以区分redis *keys* 和 *value
 
 [查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/docs/KeysValues.md)
 ---
+
+[返回主页](./README.md)
+---

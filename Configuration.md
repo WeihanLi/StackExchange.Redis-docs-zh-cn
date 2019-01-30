@@ -226,3 +226,6 @@ config.ReconnectRetryPolicy = new LinearRetry(5000);
 
 [查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/docs/Configuration.md)
 ---
+
+[返回主页](./README.md)
+---

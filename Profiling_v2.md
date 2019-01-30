@@ -227,3 +227,6 @@ connection.RegisterProfiler(() => _redisProfiler.GetSession());
 
 [查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/docs/Profiling_v2.md)
 ---
+
+[返回主页](./README.md)
+---

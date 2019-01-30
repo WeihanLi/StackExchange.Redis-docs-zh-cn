@@ -126,6 +126,9 @@ return value;
 [查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/docs/PipelinesMultiplexers.md)
 ---
 
+[返回主页](./README.md)
+---
+
 [1]: http://msdn.microsoft.com/en-us/library/dd460717(v=vs.110).aspx
 [2]: http://msdn.microsoft.com/en-us/library/system.threading.tasks.task(v=vs.110).aspx
 [3]: http://msdn.microsoft.com/en-us/library/dd321424(v=vs.110).aspx

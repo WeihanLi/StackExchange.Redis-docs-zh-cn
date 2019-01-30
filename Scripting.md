@@ -62,3 +62,6 @@ using (ConnectionMultiplexer conn = /* init code */)
 
 [查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/docs/Scripting.md)
 ---
+
+[返回主页](./README.md)
+---
