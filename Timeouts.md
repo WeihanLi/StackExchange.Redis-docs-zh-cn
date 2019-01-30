@@ -11,12 +11,12 @@
 长时间运行的命令的很少例子有 mget有大量的键，键*或写得不好的lua脚本。
 可以运行通过 SlowLog 命令查看是否有请求花费比预期更长的时间。
 
-在[这里](http://redis.io/commands/slowlog) 可以找到关于命令的更多细节。
+在 [这里](http://redis.io/commands/slowlog) 可以找到关于命令的更多细节。
 
 在向Redis发出的几个小请求之前是否有大的请求超时？
 ---------------
 
-错误消息中的参数“qs”告诉您有多少从客户端发送到服务器，但尚未处理响应的请求。 
+错误消息中的参数“qs”告诉您有多少从客户端发送到服务器，但尚未处理响应的请求。
 对于某些类型的加载，您可能会看到此值不断增长，因为 StackExchange.Redis 使用单个TCP连接，并且一次只能读取一个响应。
 即使第一个操作超时，它也不会停止 向服务器发送/从服务器发送 数据，其他请求也会被阻塞，直到该操作完成。 从而，导致超时。
 一个解决方案是通过确保redis-server缓存对于您的工作负载足够大并将大值分割为更小的块来最小化超时的可能性。
@@ -35,18 +35,20 @@ CLR ThreadPool有两种类型的线程 - “工作线程”和“I/O 完成端�
 线程池根据需要提供新的工作线程或I / O完成线程（无任何调节），直到达到每种类型线程的“最小”设置。 默认情况下，最小线程数设置为系统上的处理器数。
 
 一旦现有（繁忙）线程的数量达到“最小”线程数，ThreadPool将调节每500毫秒向一个线程注入新线程的速率。 这意味着如果你的系统需要一个IOCP线程的工作，它会很快处理这个工作。 但是，如果工作突发超过配置的“最小”设置，那么在处理一些工作时会有一些延迟，因为ThreadPool会等待两个事情之一发生：
-	1. 现有线程可以自由处理工作
-	2. 连续 500ms 没有现有线程空闲，因此创建一个新线程。
+
+  1. 现有线程可以自由处理工作
+  2. 连续 500ms 没有现有线程空闲，因此创建一个新线程。
 
 基本上，这意味着当忙线程数大于最小线程时，在应用程序处理网络流量之前，可能需要付出500毫秒的延迟。 
 此外，重要的是要注意，当现有线程保持空闲超过15秒（基于我记得），它将被清理，这个增长和收缩的循环可以重复。
 
 如果我们看一个来自 StackExchange.Redis（build 1.0.450或更高版本）的示例错误消息，您将看到它现在会打印 ThreadPool 统计信息（请参阅下面的IOCP和WORKER详细信息）。
 
-	System.TimeoutException: Timeout performing GET MyKey, inst: 2, mgr: Inactive, 
-	queue: 6, qu: 0, qs: 6, qc: 0, wr: 0, wq: 0, in: 0, ar: 0, 
-	IOCP: (Busy=6,Free=994,Min=4,Max=1000), 
-	WORKER: (Busy=3,Free=997,Min=4,Max=1000)
+  ```
+  System.TimeoutException: Timeout performing GET MyKey, inst: 2, mgr: Inactive, queue: 6, qu: 0, qs: 6, qc: 0, wr: 0, wq: 0, in: 0, ar: 0,
+  IOCP: (Busy=6,Free=994,Min=4,Max=1000), 
+  WORKER: (Busy=3,Free=997,Min=4,Max=1000)
+  ```
 
 在上面的示例中，您可以看到，对于 IOCP 线程，有6个忙线程，并且系统配置为允许4个最小线程。 在这种情况下，客户端可能会看到两个500毫秒的延迟，因为6> 4。
 
@@ -61,7 +63,6 @@ CLR ThreadPool有两种类型的线程 - “工作线程”和“I/O 完成端�
 一个好的起点是200或300，然后根据需要进行测试和调整。
 
 如何配置这个设置：
-
 
 - 在 ASP.NET 中，使用 machine.config 中 `<processModel>` 配置元素下的[“minIoThreads”配置设置](https://msdn.microsoft.com/en-us/library/7w2sway1(v=vs.71).aspx)。 根据微软的做法，你不能修改每个站点 web.config 中的这个值（即使你过去这样做是可以的），如果你这样改的话你所有的.NET 站点都会使用这个设置的值。
 请注意如果你设置 `autoconfig` 为 `false` 是不需要添加每一个属性的，仅需要添加 `autoconfig="false"` 并且覆盖原来的值就可以了：
