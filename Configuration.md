@@ -203,24 +203,25 @@ The configuration message can also be used separately to master/slave changes si
 ReconnectRetryPolicy可以是线性的（默认），指数的或者是一个自定义的重试策略。
 
 举个例子：
+
 ```C#
 config.ReconnectRetryPolicy = new ExponentialRetry(5000); // defaults maxDeltaBackoff to 10000 ms
 //retry#    retry to re-connect after time in milliseconds
-//1	        a random value between 5000 and 5500	   
-//2	        a random value between 5000 and 6050	   
-//3	        a random value between 5000 and 6655	   
-//4	        a random value between 5000 and 8053
-//5	        a random value between 5000 and 10000, since maxDeltaBackoff was 10000 ms
-//6	        a random value between 5000 and 10000
+//1         a random value between 5000 and 5500
+//2         a random value between 5000 and 6050
+//3         a random value between 5000 and 6655
+//4         a random value between 5000 and 8053
+//5         a random value between 5000 and 10000, since maxDeltaBackoff was 10000 ms
+//6         a random value between 5000 and 10000
 
 config.ReconnectRetryPolicy = new LinearRetry(5000); 
 //retry#    retry to re-connect after time in milliseconds
-//1	        5000 
-//2	        5000 	   
-//3	        5000 	   
-//4	        5000 
-//5	        5000 
-//6	        5000 
+//1         5000
+//2         5000
+//3         5000
+//4         5000
+//5         5000
+//6         5000
 ```
 
 [查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/docs/Configuration.md)

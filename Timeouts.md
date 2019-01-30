@@ -1,5 +1,5 @@
 ﻿你是否正遇到网络或 CPU 的瓶颈？
----------------
+==============
 
 验证客户端和托管redis-server的服务器上支持的最大带宽。如果有请求被带宽限制，则它们需要更长时间才能完成，从而可能导致超时。
 同样，验证您没有在客户端或服务器框上获得CPU限制，这将导致请求等待CPU时间，从而超时。
@@ -25,6 +25,7 @@
 
 在超时异常中，是否有很多 busyio 或 busyworker 线程？
 ---------------
+
 让我们先了解一下 ThreadPool 增长的一些细节：
 
 CLR ThreadPool有两种类型的线程 - “工作线程”和“I/O 完成端口”（也称为 IOCP）线程。
@@ -58,17 +59,19 @@ CLR ThreadPool有两种类型的线程 - “工作线程”和“I/O 完成端�
 
 建议：
 
-鉴于上述信息，建议将 IOCP 和 WORKER 线程的最小配置值设置为大于默认值的值。 我们不能给出一个大小适合所有指导这个值应该是什么，因为对于一个应用程序的正确的值对于另一个应用程序而言总会太高/低。 
+鉴于上述信息，建议将 IOCP 和 WORKER 线程的最小配置值设置为大于默认值的值。 我们不能给出一个大小适合所有指导这个值应该是什么，因为对于一个应用程序的正确的值对于另一个应用程序而言总会太高/低。
 此设置也会影响复杂应用程序的其他部分的性能，因此您需要根据您的特定需求调整此设置。 
 一个好的起点是200或300，然后根据需要进行测试和调整。
 
 如何配置这个设置：
 
-- 在 ASP.NET 中，使用 machine.config 中 `<processModel>` 配置元素下的[“minIoThreads”配置设置](https://msdn.microsoft.com/en-us/library/7w2sway1(v=vs.71).aspx)。 根据微软的做法，你不能修改每个站点 web.config 中的这个值（即使你过去这样做是可以的），如果你这样改的话你所有的.NET 站点都会使用这个设置的值。
+- 在 ASP.NET 中，使用 machine.config 中 `<processModel>` 配置元素下的
+[“minIoThreads”配置设置](https://msdn.microsoft.com/en-us/library/7w2sway1(v=vs.71).aspx)。
+根据微软的做法，你不能修改每个站点 web.config 中的这个值（即使你过去这样做是可以的），如果你这样改的话你所有的.NET 站点都会使用这个设置的值。
 请注意如果你设置 `autoconfig` 为 `false` 是不需要添加每一个属性的，仅需要添加 `autoconfig="false"` 并且覆盖原来的值就可以了：
 `<processModel autoConfig="false" minIoThreads="250" />`
 
-> **重要说明：** 此配置元素中指定的值是为*每个核* 设置。例如，如果你有一个4核的机器，并希望你的 minIthreads 设置为200在运行时，你应该使用 `<processModel minIoThreads ="50"/>`。
+  > **重要说明：** 此配置元素中指定的值是为*每个核* 设置。例如，如果你有一个4核的机器，并希望你的 minIthreads 设置为200在运行时，你应该使用 `<processModel minIoThreads ="50"/>`。
 
 - 在 ASP.NET 之外，使用 [ThreadPool.SetMinThreads(...)](https://msdn.microsoft.com//en-us/library/system.threading.threadpool.setminthreads(v=vs.100).aspx)API。
 

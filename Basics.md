@@ -40,6 +40,7 @@ ConnectionMultiplexer redis = ConnectionMultiplexer.Connect("server1:6379,server
 ```C#
 IDatabase db = redis.GetDatabase();
 ```
+
 从 `GetDatabase` 返回的对象是一个成本很低的通道对象，不需要存储。
 注意，redis支持多个数据库（虽然“集群”不支持），这可以可选地在调用 `GetDatabase` 中指定。
 此外，如果您计划使用异步API，您需要 [`Task.AsyncState`][2] 有一个值，也可以指定：
@@ -50,7 +51,7 @@ object asyncState = ...
 IDatabase db = redis.GetDatabase(databaseNumber, asyncState);
 ```
 
-一旦你有了`IDatabase`，它只是一个使用 [redis API](http://redis.io/commands) 的情况。 
+一旦你有了`IDatabase`，它只是一个使用 [redis API](http://redis.io/commands) 的情况。
 注意，所有方法都具有同步和异步实现。 
 根据微软的命名指导，异步方法都以 `...Async(...)` 结尾，并且完全是可以等待的 `await` 等。
 
@@ -74,7 +75,7 @@ db.StringSet(key, value);
 byte[] value = db.StringGet(key);
 ```
 
-覆盖所有redis数据类型的所有 [redis数据库命令]（http://redis.io/commands）的都是可以使用的。
+覆盖所有redis数据类型的所有 [redis数据库命令](http://redis.io/commands) 的都是可以使用的。
 
 使用 redis 发布/订阅
 ----
@@ -106,7 +107,7 @@ sub.Publish("messages", "hello");
 
 这将（实际上瞬间）将“hello”写到订阅进程的控制台。 和之前一样，通道名和消息都可以是二进制的。
 
-有关顺序和并发消息处理的使用文档说明，请参见 [发布/订阅消息顺序](PubSubOrder.md) 。
+有关顺序和并发消息处理的使用文档说明，请参见 [发布/订阅消息顺序](./PubSubOrder.md) 。
 
 访问单独的服务器
 ---
@@ -140,13 +141,10 @@ StackExchange.Redis有3种主要使用机制：
 
 - 同步 - 适用于操作在方法返回到调用者之前完成（注意，尽管这可能阻止调用者，但它绝对**不会**阻止其他线程：StackExchange.Redis的关键思想是它积极地与并发调用者共享连接）
 
-- Asynchronous - where the operation completes some time in the future, and a `Task` or `Task<T>` is returned immediately, which can later:
-
 - 异步 - 操作在将来完成一些时间，并且立即返回一个 `Task` 或 'Task<T>' 对象，也可以稍后再返回：
-
- - 是可以等待的（阻塞当前线程，直到响应可用） `.Wait()`
- - 可以增加一个后续的回调 (TPL 中的 [`ContinueWith`](http://msdn.microsoft.com/en-us/library/system.threading.tasks.task.continuewith(v=vs.110).aspx))
- - *awaited* 可等待的（这是简化后者的语言级特性，同时如果答复已经知道也立即继续） 
+  - 是可以等待的（阻塞当前线程，直到响应可用） `.Wait()`
+  - 可以增加一个后续的回调 (TPL 中的 [`ContinueWith`](http://msdn.microsoft.com/en-us/library/system.threading.tasks.task.continuewith(v=vs.110).aspx))
+  - *awaited* 可等待的（这是简化后者的语言级特性，同时如果答复已经知道也立即继续
 
 - 执行后不理 - 适用于你真的对这个回复不感兴趣，并且乐意继续不管回应
 
@@ -173,6 +171,6 @@ db.StringIncrement(pageKey, flags: CommandFlags.FireAndForget);
 [查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/docs/Basics.md)
 ---
 
-  [1]: http://msdn.microsoft.com/en-us/library/dd460717%28v=vs.110%29.aspx
-  [2]: http://msdn.microsoft.com/en-us/library/system.threading.tasks.task.asyncstate(v=vs.110).aspx
-  [3]: http://msdn.microsoft.com/en-us/library/system.string(v=vs.110).aspx
+[1]: http://msdn.microsoft.com/en-us/library/dd460717%28v=vs.110%29.aspx
+[2]: http://msdn.microsoft.com/en-us/library/system.threading.tasks.task.asyncstate(v=vs.110).aspx
+[3]: http://msdn.microsoft.com/en-us/library/system.string(v=vs.110).aspx

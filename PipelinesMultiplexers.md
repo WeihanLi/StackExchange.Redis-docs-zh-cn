@@ -3,7 +3,6 @@
 
 延迟严重。现代计算机可以以惊人的速度搅动数据，并且高速网络（通常具有在重要服务器之间的多个并行链路）提供巨大的带宽，但是... 该延迟意味着计算机花费大量的时间*等待数据* 和 这是基于连续的编程越来越受欢迎的几个原因之一。
 
-
 让我们考虑一些常规的程序代码：
 
 ```C#
@@ -33,7 +32,7 @@ string b = db.StringGet("b");
                                      [====waiting=====]
                                                       [resp2]
 
-请记住，这是**不成比例的** - 如果这是按时间缩放，它将是完全由` waiting`  控制的。
+请记住，这是**不成比例的** - 如果这是按时间缩放，它将是完全由 `waiting` 控制的。
 
 管道线
 ---
@@ -42,7 +41,7 @@ string b = db.StringGet("b");
 在 .NET 中，可以启动但尚未完成，并且可能以后完成或故障的由TPL封装的操作可以由 [TPL][1] 通过 [`Task`][2] / [`Task <T>`][3] API 来实现。
 本质上， `Task<T>` 表示 " `T` 类型未来可能的值"（非泛型的 `Task` 本质尚是 `Task<void>` ）。你可以使用任意一种用法：
 
--  在稍后的代码块等待直到操作完成（`.Wait()`）
+- 在稍后的代码块等待直到操作完成（`.Wait()`）
 - 当操作完成时，调度一个后续操作（`.ContinueWith(...)` 或 `await`）
 
 例如，要使用过程化（阻塞）代码来借助管道传递这两个 get 操作，我们可以使用：
@@ -76,8 +75,8 @@ var value = (string)db.StringGet(key);
 ---
 
 管道是很好的，但是通常任何单个代码块只需要一个值（或者可能想要执行几个操作，但是依赖于彼此）。
-这意味着我们仍然有一个问题，我们花大部分时间等待数据在客户端和服务器之间传输。 
-现在考虑一个繁忙的应用程序，也许是一个Web服务器。 
+这意味着我们仍然有一个问题，我们花大部分时间等待数据在客户端和服务器之间传输。
+现在考虑一个繁忙的应用程序，也许是一个Web服务器。
 这样的应用程序通常是并发的，所以如果你有20个并行应用程序请求都需要数据，你可能会想到旋转20个连接，或者你可以同步访问单个连接（这意味着最后一个调用者需要等待 延迟的所有其他19之前，甚至开始）。 或者折中一下，也许一个5个连接的租赁池 - 无论你怎么做，都会有很多的等待。
 **StackExchange.Redis不做这个**; 相反，它做 *很多* 的工作，使你有效地利用所有这个空闲时间*复用* 一个连接。
 当不同的调用者同时使用它时，它**自动把这些单独的请求加入管道**，所以不管请求使用阻塞还是异步访问，工作都是按进入管道的顺序处理的。
@@ -127,6 +126,6 @@ return value;
 [查看原文](https://github.com/StackExchange/StackExchange.Redis/blob/master/docs/PipelinesMultiplexers.md)
 ---
 
-  [1]: http://msdn.microsoft.com/en-us/library/dd460717(v=vs.110).aspx
-  [2]: http://msdn.microsoft.com/en-us/library/system.threading.tasks.task(v=vs.110).aspx
-  [3]: http://msdn.microsoft.com/en-us/library/dd321424(v=vs.110).aspx
+[1]: http://msdn.microsoft.com/en-us/library/dd460717(v=vs.110).aspx
+[2]: http://msdn.microsoft.com/en-us/library/system.threading.tasks.task(v=vs.110).aspx
+[3]: http://msdn.microsoft.com/en-us/library/dd321424(v=vs.110).aspx

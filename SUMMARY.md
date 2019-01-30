@@ -7,7 +7,7 @@
 * [键查找](KeysScan.md)
 * [键与值](KeysValues.md)
 * [管道与重用链接](PipelinesMultiplexers.md)
-* [分析](Profiling.md)
+* [性能分析](Profiling.md)
 * [发布订阅顺序](PubSubOrder.md)
 * [脚本](Scripting.md)
 * [超时](Timeouts.md)

@@ -18,14 +18,14 @@ redis中的事务包括放置在 `MULTI` 和 `EXEC` 之间的一组命令（或�
 var newId = CreateNewUniqueID(); // optimistic
 using(var tran = conn.BeginTran())
 {
-	var cust = GetCustomer(conn, custId, tran);
-	var uniqueId = cust.UniqueID;
-	if(uniqueId == null)
-	{
-		cust.UniqueId = newId;
-		SaveCustomer(conn, cust, tran);
-	}
-	tran.Complete();
+    var cust = GetCustomer(conn, custId, tran);
+    var uniqueId = cust.UniqueID;
+    if(uniqueId == null)
+    {
+        cust.UniqueId = newId;
+        SaveCustomer(conn, cust, tran);
+    }
+    tran.Complete();
 }
 ```
 
@@ -38,7 +38,7 @@ using(var tran = conn.BeginTran())
 Redis会自动跟踪这个键，任何变化基本上都会使我们的事务回滚 - `EXEC` 和 `DISCARD` 一样（调用者可以检测到这一点，并从头开始重试）。
 所以你可以做的是： `WATCH` 一个键，以正常的方式检查该键的数据，然后 `MULTI` / `EXEC` 你的更改。
 
-如果，当你检查数据，你发现你实际上不需要事务，你可以使用 `UNWATCH` 来取消关注所有关注的键。 
+如果，当你检查数据，你发现你实际上不需要事务，你可以使用 `UNWATCH` 来取消关注所有关注的键。
 注意，关注的键在 `EXEC` 和 `DISCARD` 期间也被复位。 所以*在Redis层*，事务是从概念上讲的。
 
 ```
@@ -104,7 +104,7 @@ Lua 脚本
 
 在Redis层（假设 `HSETNX` 不存在），这可以实现为：
 
-```
+``` lua
 EVAL "if redis.call('hexists', KEYS[1], 'UniqueId') then return redis.call('hset', KEYS[1], 'UniqueId', ARGV[1]) else return 0 end" 1 {custKey} {newId}
 ```
 

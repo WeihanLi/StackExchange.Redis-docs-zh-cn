@@ -8,16 +8,16 @@
 
 `LuaScript` 的使用示例:
 
-```
-	const string Script = "redis.call('set', @key, @value)";
+``` csharp
+const string Script = "redis.call('set', @key, @value)";
 
-	using (ConnectionMultiplexer conn = /* init code */)
-	{
-		var db = conn.GetDatabase(0);
+using (ConnectionMultiplexer conn = /* init code */)
+{
+    var db = conn.GetDatabase(0);
 
-		var prepared = LuaScript.Prepare(Script);
-		db.ScriptEvaluate(prepared, new { key = (RedisKey)"mykey", value = 123 });
-	}
+    var prepared = LuaScript.Prepare(Script);
+    db.ScriptEvaluate(prepared, new { key = (RedisKey)"mykey", value = 123 });
+}
 ```
 
 `LuaScript` 类将 `@myVar` 形式的脚本中的变量重写为redis所需的合适的 `ARGV [someIndex]`。 
@@ -30,32 +30,32 @@ Any object that exposes field or property members with the same name as @-prefix
 
 支持的成员类型如下：
 
- - int(?)
- - long(?)
- - double(?)
- - string
- - byte[]
- - bool(?)
- - RedisKey
- - RedisValue
+- int(?)
+- long(?)
+- double(?)
+- string
+- byte[]
+- bool(?)
+- RedisKey
+- RedisValue
 
 为了避免在每次评估时重新传输Lua脚本到redis，`LuaScript` 对象可以通过 `LuaScript.Load(IServer)` 转换为 `LoadedLuaScript`。
 `LoadedLuaScripts` 使用 [`EVALSHA`](http://redis.io/commands/evalsha) 求值，并由 hash 引用。
 
 `LoadedLuaScript` 的使用示例：
 
-```
-	const string Script = "redis.call('set', @key, @value)";
+``` csharp
+const string Script = "redis.call('set', @key, @value)";
 
-	using (ConnectionMultiplexer conn = /* init code */)
-	{
-		var db = conn.GetDatabase(0);
-		var server = conn.GetServer(/* appropriate parameters*/);
+using (ConnectionMultiplexer conn = /* init code */)
+{
+    var db = conn.GetDatabase(0);
+    var server = conn.GetServer(/* appropriate parameters*/);
 
-		var prepared = LuaScript.Prepare(Script);
-		var loaded = prepared.Load(server);
-		loaded.Evaluate(db, new { key = (RedisKey)"mykey", value = 123 });
-	}
+    var prepared = LuaScript.Prepare(Script);
+    var loaded = prepared.Load(server);
+    loaded.Evaluate(db, new { key = (RedisKey)"mykey", value = 123 });
+}
 ```
 
 `LuaScript` 和 `LoadedLuaScript` 上的所有方法都有Async替代方法，并将提交到redis的实际脚本公开为 `ExecutableScript` 属性。
